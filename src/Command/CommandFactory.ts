@@ -8,6 +8,7 @@ import { getRouterRtpCapabilitiesCommand } from './getRouterRtpCapabilitiesComma
 import { ExitRoomCommand } from './ExitRoomCommand';
 import { createWebRtcTransportCommand } from './createWebRtcTransportCommand';
 import { getProducersCommand } from './getProducersCommand';
+import { connectTransportCommand } from './connectTransportCommand';
 
 
 
@@ -41,6 +42,9 @@ export class CommandFactory extends CommandFactoryBase {
                 break;
             case CommandType.getProducers:
                 newCommand = new getProducersCommand(this.connectionMnager,command.Data, command.clientID)
+                break;
+            case CommandType.connectTransport:
+                newCommand = new connectTransportCommand(this.connectionMnager,command.Data, command.clientID)
                 break;
             default:
                 break;

@@ -7,7 +7,7 @@ import { EventTypes } from "../Types/Events";
 import { roomList } from "../Models/RoomLists";
 
 
-export class getRouterRtpCapabilitiesCommand implements ICommand {
+export class connectTransportCommand implements ICommand {
     private readonly _serverManager: IServerManager;
     Data: any = [];
     ClientID: string;
@@ -25,7 +25,7 @@ export class getRouterRtpCapabilitiesCommand implements ICommand {
         if (!isValid) {
             const registerCallBack: any = {
                 CommandType: CommandType.RegisterCallback,
-                Data: { ClientID: this.ClientID, Message: "Validation Failed!" },
+                Data: { ClientID: this.ClientID, Message: "Validation Failed!",TransportsType:null },
                 Event: EventTypes.RegistrationFailed
             }
             this._serverManager.sendTo(this.ClientID, registerCallBack);
@@ -35,31 +35,28 @@ export class getRouterRtpCapabilitiesCommand implements ICommand {
 
     async execute(): Promise<void> {
         const callBackCommand: any = {
-            CommandType: CommandType.JoinRoom,
-            Data: { ClientID: this.ClientID, Message: "RtpCapabilities Command",Capabilities:null,error:null}
+            CommandType: CommandType.connectTransport,
+            Data: { ClientID: this.ClientID, Message: "connect Transport Command"}
         }
         
         let room_id = this.Data.RoomId;
+        let transport_id = this.Data.transport_id;
+        let dtlsParameters = this.Data.dtlsParameters;
+        let TransportsType = this.Data.TransportsType;
+        
+        if (!roomList.has(room_id)){
+          callBackCommand.Data.Message = "Room Already Exists."
+          callBackCommand.Event = EventTypes.RoomAlreadyExist;
+        } 
+        else{
+          console.log('Connect transport', { name: `${roomList.get(room_id).getPeers().get(this.ClientID).name}` })
+          await roomList.get(room_id).connectPeerTransport(this.ClientID, transport_id, dtlsParameters)
+          callBackCommand.Data.Message = "Transport connected";
+          callBackCommand.Data.TransportsType = TransportsType;
+          callBackCommand.Event = EventTypes.Transportconnected;
+          console.log('Transport connected')
+        }
 
-
-          console.log('Get RouterRtpCapabilities :', {
-            name: `${roomList.get(room_id).getPeers().get(this.ClientID).name}`
-          })
-
-          console.log('Getting RouterRtpCapabilities');
-  
-          try {
-            callBackCommand.Data.Message = "RtpCapabilities Received";
-            callBackCommand.Data.Capabilities = roomList.get(room_id).getRtpCapabilities()
-            callBackCommand.Event = EventTypes.RtpCapabilitiesReceived;
-            console.log('RtpCapabilities Received');
-          } catch (e) {
-            callBackCommand.Data.Message = e.message;
-            callBackCommand.Data.error = e;        
-            callBackCommand.Event = EventTypes.RtpCapabilitiesError;
-            console.log(e.message)
-          }
-
-          this._serverManager.sendTo(this.ClientID, callBackCommand);
+        this._serverManager.sendTo(this.ClientID, callBackCommand);
     }
 }

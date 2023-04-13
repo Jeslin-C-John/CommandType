@@ -21,6 +21,7 @@ const callbackEvents = {
   RoomExited: "RoomExited",
   CreateWebRtcTransportSuccess: "CreateWebRtcTransportSuccess",
   ProducersReceived: "ProducersReceived",
+  Transportconnected: "Transportconnected",
 };
 
 
@@ -58,6 +59,9 @@ server.connect().then((events) => {
   events.on(callbackEvents.ProducersReceived, function (data) {
     getProducers(data.Event, data)
   });
+  events.on(callbackEvents.Transportconnected, function (data) {
+    Transportconnected(data.Event, data)
+  });
 })
 
 
@@ -89,7 +93,7 @@ function ReadRouterRtpCapabilities(EventName, EventData) {
 
 function LoadDevice(EventName, EventData) {
   ConsoleEvent(EventName, EventData);
-  roomObj.loadDevice(EventData.Data);
+  roomObj.loadDevice(EventData.Data.Capabilities);
 }
 
 function InitWebrtcTransport(EventName, EventData) {
@@ -119,6 +123,9 @@ function getProducers(EventName, EventData){
   ConsoleEvent(EventName, EventData)
   roomObj.newProducers(EventData.Data.producerList);
   roomOpen();
+}
+function Transportconnected(EventName, EventData){
+  ConsoleEvent(EventName, EventData)
 }
 
 
