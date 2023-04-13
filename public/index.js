@@ -6,6 +6,7 @@ let roomObj = null;
 consoleEvent = true;
 let _roomId = null;
 let _username = null;
+let _device = null;
 nameInput.value = 'user_' + Math.round(Math.random() * 1000);
 
 const callbackEvents = {
@@ -18,39 +19,46 @@ const callbackEvents = {
   newProducers: "newProducers",
   disconnect: "disconnect",
   RoomExited: "RoomExited",
+  CreateWebRtcTransportSuccess: "CreateWebRtcTransportSuccess",
+  ProducersReceived: "ProducersReceived",
 };
 
 
-server.connect().then((events) => {  
-    events.on(callbackEvents.RoomCreated, function (data) {
-      JoinRoom(data.Event, data)
-    });
-    events.on(callbackEvents.RoomAlreadyExist, function (data) {
-      JoinRoom(data.Event, data)
-    });
-    events.on(callbackEvents.JoinedRoom, function (data) {
-      ReadRouterRtpCapabilities(data.Event, data)
-    });
-    events.on(callbackEvents.RtpCapabilitiesReceived, function (data) {
-      LoanDevice(data.Event, data)
-    });
-    events.on(callbackEvents.DeviceLoaded, function (data) {
-      LoadRoom(data.Event, data)
-    });
-    events.on(callbackEvents.consumerClosed, function (data) {
-      roomObj.consumerClosed(data.consumer_id)
-    });
-    events.on(callbackEvents.newProducers, function (data) {
-      roomObj.newProducers(data)
-    });
-    events.on(callbackEvents.disconnect, function (data) {
-      roomObj.disconnect()
-    });
-    events.on(callbackEvents.RoomExited, function (data) {
-      ExitRoom(data.Event, data)
-    });
+server.connect().then((events) => {
+  events.on(callbackEvents.RoomCreated, function (data) {
+    JoinRoom(data.Event, data)
+  });
+  events.on(callbackEvents.RoomAlreadyExist, function (data) {
+    JoinRoom(data.Event, data)
+  });
+  events.on(callbackEvents.JoinedRoom, function (data) {
+    ReadRouterRtpCapabilities(data.Event, data)
+  });
+  events.on(callbackEvents.RtpCapabilitiesReceived, function (data) {
+    LoadDevice(data.Event, data)
+  });
+  events.on(callbackEvents.DeviceLoaded, function (data) {
+    InitWebrtcTransport(data.Event, data)
+  });
+  events.on(callbackEvents.consumerClosed, function (data) {
+    roomObj.consumerClosed(data.consumer_id)
+  });
+  events.on(callbackEvents.newProducers, function (data) {
+    roomObj.newProducers(data)
+  });
+  events.on(callbackEvents.disconnect, function (data) {
+    roomObj.disconnect()
+  });
+  events.on(callbackEvents.RoomExited, function (data) {
+    ExitRoom(data.Event, data)
+  });
+  events.on(callbackEvents.CreateWebRtcTransportSuccess, function (data) {
+    CreateWebrtcTransport(data.Event, data)
+  });
+  events.on(callbackEvents.ProducersReceived, function (data) {
+    getProducers(data.Event, data)
+  });
 })
-
 
 
 function Login(username, room_id) {
@@ -69,39 +77,49 @@ function Login(username, room_id) {
   }
 }
 
-function JoinRoom(EventName, EventData){
+function JoinRoom(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
   roomObj.join(_username, _roomId)
 }
 
-function ReadRouterRtpCapabilities(EventName, EventData){
+function ReadRouterRtpCapabilities(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
-  roomObj.getRouterRtpCapabilities(_username, _roomId); 
+  roomObj.getRouterRtpCapabilities(_username, _roomId);
 }
 
-function LoanDevice(EventName, EventData){
+function LoadDevice(EventName, EventData) {
   ConsoleEvent(EventName, EventData);
   roomObj.loadDevice(EventData.Data);
 }
 
-function LoadRoom(EventName, EventData) {
+function InitWebrtcTransport(EventName, EventData) {
   ConsoleEvent(EventName, EventData);
-  roomOpen();
+  _device=EventData.Data.Device
+  roomObj.createWebRtcTransport(_device, "producerTransport", _roomId);
 }
 
-function ExitRoom(EventName, EventData){
+function CreateWebrtcTransport(EventName, EventData) {
+  ConsoleEvent(EventName, EventData);
+  if (EventData.Data.transportType == "producerTransport") {
+    roomObj.initProducerTransports(EventData.Data.params);
+    roomObj.createWebRtcTransport(_device, "consumerTransport", _roomId);
+  }
+  else if (EventData.Data.transportType == "consumerTransport") {
+    roomObj.initConsumerTransports(EventData.Data.params);
+    roomObj.getProducers(_username,_roomId);
+  }
+}
+
+function ExitRoom(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
   roomObj.clean()
 }
 
-
-
-
-
-
-
-
-
+function getProducers(EventName, EventData){
+  ConsoleEvent(EventName, EventData)
+  roomObj.newProducers(EventData.Data.producerList);
+  roomOpen();
+}
 
 
 
@@ -229,21 +247,21 @@ function enumerateDevices() {
 }
 
 function ConsoleEvent(EventName, EventData) {
-  if(consoleEvent){
+  if (consoleEvent) {
     // console.log(EventName + " : "+ JSON.stringify(EventData))
     console.log(EventData.Data.Message)
-    // alert(EventData.Data.Message)
+    //alert(EventData.Data.Message)
     LiveConsole(EventData.Data.Message);
   }
 }
 
-function LiveConsole(msg){
+function LiveConsole(msg) {
   let ele = document.getElementById('alert_box');
-  if(msg=='Room Created Successfully.'||msg=='Room Already Exists.'){
-    ele.innerHTML = '<p>'+msg+'</p>';
+  if (msg == 'Room Created Successfully.' || msg == 'Room Already Exists.') {
+    ele.innerHTML = '<p>' + msg + '</p>';
   }
-  else{
-    ele.innerHTML += '<p>'+msg+'</p>';
+  else {
+    ele.innerHTML += '<p>' + msg + '</p>';
   }
 }
 

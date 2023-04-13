@@ -33,5 +33,8 @@ export enum EventTypes {
     PeerConnectionServerFailed="PeerConnectionServerFailed",
     CallDroped="CallDroped",
     RtpCapabilitiesReceived="RtpCapabilitiesReceived",
-    RtpCapabilitiesError="RtpCapabilitiesError"
+    RtpCapabilitiesError="RtpCapabilitiesError",
+    CreateWebRtcTransportSuccess ="CreateWebRtcTransportSuccess",
+    CreateWebRtcTransportError ="CreateWebRtcTransportError",
+    ProducersReceived = "ProducersReceived"
 }

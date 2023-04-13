@@ -24,4 +24,6 @@ export enum CommandType {
     ExitRoom = "ExitRoom",
     AnonymousLogin = "AnonymousLogin",
     getRouterRtpCapabilities = "getRouterRtpCapabilities",
+    createWebRtcTransport = "createWebRtcTransport",
+    getProducers = "getProducers",
 }

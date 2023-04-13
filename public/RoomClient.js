@@ -112,37 +112,144 @@ class RoomClient {
   }
 
 
+  async createWebRtcTransport(device,transport_type,room_id){
+    var dataObj = null
+    if(transport_type == "producerTransport" ){
+      dataObj = {
+                  commandType:"createWebRtcTransport",
+                  Data: {
+                          RoomId:room_id, 
+                          forceTcp: false, 
+                          rtpCapabilities: device.rtpCapabilities,
+                          transportType: transport_type
+                        }
+                }; 
+    }
+    else if(transport_type == "consumerTransport")   {
+      dataObj = {
+                  commandType:"createWebRtcTransport",
+                  Data: {
+                          RoomId:room_id, 
+                          forceTcp: false,
+                          transportType: transport_type
+                        }
+                };     
+    }
+    await this.socket.sendCommand(JSON.stringify(dataObj));
+  } 
 
+
+  async initProducerTransports(data){
+
+    // init producerTransport
+    this.producerTransport = this.device.createSendTransport(data);
+    this.producerTransport.on(
+      "connect",
+      async function ({ dtlsParameters }, callback, errback) {
+        this.socket
+          .request("connectTransport", {
+            dtlsParameters,
+            transport_id: data.id,
+          })
+          .then(callback)
+          .catch(errback);
+      }.bind(this)
+    );
+
+    this.producerTransport.on(
+      'produce',
+      async function ({ kind, rtpParameters }, callback, errback) {
+        debugger;
+        try {
+          const { producer_id } = await this.socket.request('produce', {
+            producerTransportId: this.producerTransport.id,
+            kind,
+            rtpParameters
+          })
+          callback({
+            id: producer_id
+          })
+        } catch (err) {
+          errback(err)
+        }
+      }.bind(this)
+    )
+
+    this.producerTransport.on(
+      "connectionstatechange",
+      function (state) {
+        switch (state) {
+          case "connecting":
+            break;
+
+          case "connected":
+            //localVideo.srcObject = stream
+            break;
+
+          case "failed":
+            this.producerTransport.close();
+            break;
+
+          default:
+            break;
+        }
+      }.bind(this)
+
+    );
+  }
+
+  async initConsumerTransports(data){
+
+    // init consumerTransport
+    this.consumerTransport = this.device.createRecvTransport(data);
+
+    this.consumerTransport.on(
+      "connect",
+      function ({ dtlsParameters }, callback, errback) {
+        this.socket
+          .request("connectTransport", {
+            transport_id: this.consumerTransport.id,
+            dtlsParameters,
+          })
+          .then(callback)
+          .catch(errback);
+      }.bind(this)
+    );
+
+    this.consumerTransport.on(
+      "connectionstatechange",
+      async function (state) {
+        switch (state) {
+          case "connecting":
+            break;
+
+          case "connected":
+            //remoteVideo.srcObject = await stream;
+            //await socket.request('resume');
+            break;
+
+          case "failed":
+            this.consumerTransport.close();
+            break;
+
+          default:
+            break;
+        }
+      }.bind(this)
+    );
+
+  }
+
+  async getProducers(name, room_id){
+      var dataObj ={commandType:"getProducers", Data: { Name:name, RoomId:room_id}};
+      await this.socket.sendCommand(JSON.stringify(dataObj))
+  }
 
 
 
   async initTransports(device) {
     // init producerTransport
     {
-      const data = await this.socket.request("createWebRtcTransport", {
-        forceTcp: false,
-        rtpCapabilities: device.rtpCapabilities,
-      });
-
-      if (data.error) {
-        console.error(data.error);
-        return;
-      }
-
-      this.producerTransport = device.createSendTransport(data);
-
-      this.producerTransport.on(
-        "connect",
-        async function ({ dtlsParameters }, callback, errback) {
-          this.socket
-            .request("connectTransport", {
-              dtlsParameters,
-              transport_id: data.id,
-            })
-            .then(callback)
-            .catch(errback);
-        }.bind(this)
-      );
 
       this.producerTransport.on(
         "produce",
@@ -238,7 +345,7 @@ class RoomClient {
   //////// MAIN FUNCTIONS /////////////
 
   async produce(type, deviceId = null) {
-    debugger;
+    // debugger;
     let mediaConstraints = {};
     let audio = false;
     let screen = false;
@@ -280,10 +387,13 @@ class RoomClient {
       default:
         return;
     }
-    if (!this.device.canProduce("video") && !audio) {
-      console.error("Cannot produce video");
-      return;
-    }
+
+    debugger;
+
+    // if (!this.device.canProduce("video") && !audio) {
+    //   console.error("Cannot produce video");
+    //   return;
+    // }
     if (this.producerLabel.has(type)) {
       console.log("Producer already exists for this type " + type);
       return;
@@ -369,6 +479,7 @@ class RoomClient {
       }
 
       if (screen == false) {
+        debugger;
         producer = await this.producerTransport.produce(params);
         console.log("Producer", producer);
         this.producers.set(producer.id, producer);
@@ -703,8 +814,8 @@ class RoomClient {
 
  clean(){
     this._isOpen = false;
-    // this.consumerTransport.close();    // to be fixed
-    // this.producerTransport.close();    // to be fixed
+    this.producerTransport.close();    
+    this.consumerTransport.close();   
     this.socket.listenerRemove('disconnect');
     this.socket.listenerRemove('newProducers');
     this.socket.listenerRemove('consumerClosed');
