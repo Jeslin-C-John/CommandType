@@ -136,7 +136,7 @@ export class RoomManager implements IRoomManager{
             })
             this.peers.get(socket_id).removeConsumer(consumer.id)
             // tell client consumer is dead
-            this.io.to(socket_id).emit('consumerClosed', {
+            this.io.to(socket_id).emit('consumerClosed', {   // to be fixed
               consumer_id: consumer.id
             })
           }.bind(this)

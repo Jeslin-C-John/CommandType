@@ -27,4 +27,5 @@ export enum CommandType {
     createWebRtcTransport = "createWebRtcTransport",
     getProducers = "getProducers",
     connectTransport = "connectTransport",
+    produce = "produce",
 }

@@ -22,6 +22,7 @@ const callbackEvents = {
   CreateWebRtcTransportSuccess: "CreateWebRtcTransportSuccess",
   ProducersReceived: "ProducersReceived",
   Transportconnected: "Transportconnected",
+  produced: "produced",
 };
 
 
@@ -61,6 +62,9 @@ server.connect().then((events) => {
   });
   events.on(callbackEvents.Transportconnected, function (data) {
     Transportconnected(data.Event, data)
+  });
+  events.on(callbackEvents.produced, function (data) {
+    produced(data.Event, data)
   });
 })
 
@@ -124,8 +128,15 @@ function getProducers(EventName, EventData){
   roomObj.newProducers(EventData.Data.producerList);
   roomOpen();
 }
+
 function Transportconnected(EventName, EventData){
   ConsoleEvent(EventName, EventData)
+  roomObj.mediasoupCallback("connect",null)
+}
+
+function produced(EventName, EventData){
+  ConsoleEvent(EventName, EventData)
+  roomObj.mediasoupCallback("produce",EventData.Data.producer_id)
 }
 
 

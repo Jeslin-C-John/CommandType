@@ -37,5 +37,6 @@ export enum EventTypes {
     CreateWebRtcTransportSuccess ="CreateWebRtcTransportSuccess",
     CreateWebRtcTransportError ="CreateWebRtcTransportError",
     ProducersReceived = "ProducersReceived",
-    Transportconnected = "Transportconnected"
+    Transportconnected = "Transportconnected",
+    produced = "produced",
 }

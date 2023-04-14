@@ -9,6 +9,7 @@ import { ExitRoomCommand } from './ExitRoomCommand';
 import { createWebRtcTransportCommand } from './createWebRtcTransportCommand';
 import { getProducersCommand } from './getProducersCommand';
 import { connectTransportCommand } from './connectTransportCommand';
+import { produceCommand } from './produceCommand';
 
 
 
@@ -45,6 +46,9 @@ export class CommandFactory extends CommandFactoryBase {
                 break;
             case CommandType.connectTransport:
                 newCommand = new connectTransportCommand(this.connectionMnager,command.Data, command.clientID)
+                break;
+            case CommandType.produce:
+                newCommand = new produceCommand(this.connectionMnager,command.Data, command.clientID)
                 break;
             default:
                 break;
