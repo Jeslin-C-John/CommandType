@@ -136,9 +136,16 @@ export class RoomManager implements IRoomManager{
             })
             this.peers.get(socket_id).removeConsumer(consumer.id)
             // tell client consumer is dead
-            this.io.to(socket_id).emit('consumerClosed', {   // to be fixed
-              consumer_id: consumer.id
-            })
+            // this.io.to(socket_id).emit('consumerClosed', {   // to be fixed
+            //   consumer_id: consumer.id
+            // })
+            const registerCallBack: any = {
+              CommandType: "consumerClosed",
+              Data: consumer.id,
+              Event:"consumerClosed",
+              Message:"Consumer closed"
+          }
+          this.io.sendTo(socket_id, registerCallBack);
           }.bind(this)
         )
     
@@ -161,7 +168,17 @@ export class RoomManager implements IRoomManager{
       }
     
       send(socket_id, name, data) {
-        this.io.to(socket_id).emit(name, data)
+
+        const registerCallBack: any = {
+          CommandType: name,
+          Data: data,
+          Event:name,
+          Message:(name =='newProducers')?"New producer Created":name
+      }
+        
+        
+        // this.io.to(socket_id).emit(name, data)
+        this.io.sendTo(socket_id, registerCallBack);
       }
     
       getPeers() {

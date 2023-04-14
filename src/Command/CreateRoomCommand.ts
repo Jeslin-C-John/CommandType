@@ -73,7 +73,7 @@ export class CreateRoomCommand implements ICommand {
             
             // return(room_id)
           }
-         
+        console.log("clientId", this.ClientID)
         this._serverManager.sendTo(this.ClientID, registerCallBack);
     }
 }

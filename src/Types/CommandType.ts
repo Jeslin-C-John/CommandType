@@ -28,4 +28,5 @@ export enum CommandType {
     getProducers = "getProducers",
     connectTransport = "connectTransport",
     produce = "produce",
+    consume="consume"
 }

@@ -23,6 +23,7 @@ const callbackEvents = {
   ProducersReceived: "ProducersReceived",
   Transportconnected: "Transportconnected",
   produced: "produced",
+  consumed: "consumed"
 };
 
 
@@ -43,10 +44,11 @@ server.connect().then((events) => {
     InitWebrtcTransport(data.Event, data)
   });
   events.on(callbackEvents.consumerClosed, function (data) {
-    roomObj.consumerClosed(data.consumer_id)
+    roomObj.consumerClosed(data.Data)
   });
   events.on(callbackEvents.newProducers, function (data) {
-    roomObj.newProducers(data)
+    ConsoleEvent(data.Event, data)
+    roomObj.newProducers(data.Data)
   });
   events.on(callbackEvents.disconnect, function (data) {
     roomObj.disconnect()
@@ -65,6 +67,10 @@ server.connect().then((events) => {
   });
   events.on(callbackEvents.produced, function (data) {
     produced(data.Event, data)
+  });
+  events.on(callbackEvents.consumed, function (data) {
+    ConsoleEvent(data.Event, data)
+    roomObj.getConsumeStreamReturn(data.Data.params)
   });
 })
 
@@ -267,9 +273,15 @@ function enumerateDevices() {
 function ConsoleEvent(EventName, EventData) {
   if (consoleEvent) {
     // console.log(EventName + " : "+ JSON.stringify(EventData))
-    console.log(EventData.Data.Message)
     //alert(EventData.Data.Message)
-    LiveConsole(EventData.Data.Message);
+    if(EventData.Data.Message == undefined){
+      console.log(EventData.Message)
+      LiveConsole(EventData.Message);
+    }
+    else{
+      console.log(EventData.Data.Message)
+      LiveConsole(EventData.Data.Message);
+    }
   }
 }
 
@@ -282,30 +294,3 @@ function LiveConsole(msg) {
     ele.innerHTML += '<p>' + msg + '</p>';
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function LoanDevice(EventName, EventData){
-//   ConsoleEvent(EventName, EventData);
-//   roomObj.loadDevice(EventData.Data).then(function(data) {
-//     /* code if successful */
-//     console.log(data)
-//     alert(data);
-//   },
-//   function(error) {
-//      /* code if some error */
-//      alert(error);
-//    }
-//   );
-//   roomOpen();
-// }

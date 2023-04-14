@@ -222,6 +222,7 @@ class RoomClient {
     this.consumerTransport.on(
       "connect",
       function ({ dtlsParameters }, callback, errback) {
+        this._mediaSoupCallback = callback;
         var dataObj = {
           commandType: "connectTransport", Data: {
             RoomId: this.room_id,
@@ -372,27 +373,15 @@ class RoomClient {
           {
             rid: "r1",
             maxBitrate: 300000,
-            scaleResolutionDownBy: 6.0,
+            scaleResolutionDownBy: 3.0,
             scalabilityMode: "L1T3",
           },
           {
             rid: "r2",
             maxBitrate: 300000,
-            scaleResolutionDownBy: 4.0,
-            scalabilityMode: "L1T3",
-          },
-          {
-            rid: "r3",
-            maxBitrate: 300000,
-            scaleResolutionDownBy: 2.0,
-            scalabilityMode: "L1T3",
-          },
-          {
-            rid: "r4",
-            maxBitrate: 900000,
             scaleResolutionDownBy: 1.0,
             scalabilityMode: "L1T3",
-          },
+          }
         ];
         params.codecOptions = {
           videoGoogleStartBitrate: 1000,
@@ -572,54 +561,72 @@ class RoomClient {
   async consume(producer_id) {
     //let info = await this.roomInfo()
 
-    this.getConsumeStream(producer_id).then(
-      function ({ consumer, stream, kind }) {
-        this.consumers.set(consumer.id, consumer);
+    this.getConsumeStream(producer_id)
 
-        let elem;
-        if (kind === "video") {
-          elem = document.createElement("video");
-          elem.srcObject = stream;
-          elem.id = consumer.id;
-          elem.playsinline = false;
-          elem.autoplay = true;
-          elem.className = "vid";
-          this.remoteVideoEl.appendChild(elem);
-          this.handleFS(elem.id);
-        } else {
-          elem = document.createElement("audio");
-          elem.srcObject = stream;
-          elem.id = consumer.id;
-          elem.playsinline = false;
-          elem.autoplay = true;
-          this.remoteAudioEl.appendChild(elem);
-        }
 
-        consumer.on(
-          "trackended",
-          function () {
-            this.removeConsumer(consumer.id);
-          }.bind(this)
-        );
 
-        consumer.on(
-          "transportclose",
-          function () {
-            this.removeConsumer(consumer.id);
-          }.bind(this)
-        );
-      }.bind(this)
-    );
   }
+
+  async consumeMedia ({ consumer, stream, kind }) {
+      this.consumers.set(consumer.id, consumer);
+      let elem;
+      if (kind === "video") {
+        elem = document.createElement("video");
+        elem.srcObject = stream;
+        elem.id = consumer.id;
+        elem.playsinline = false;
+        elem.autoplay = true;
+        elem.className = "vid";
+        this.remoteVideoEl.appendChild(elem);
+        this.handleFS(elem.id);
+      } else {
+        elem = document.createElement("audio");
+        elem.srcObject = stream;
+        elem.id = consumer.id;
+        elem.playsinline = false;
+        elem.autoplay = true;
+        this.remoteAudioEl.appendChild(elem);
+      }
+
+      consumer.on(
+        "trackended",
+        function () {
+          this.removeConsumer(consumer.id);
+        }.bind(this)
+      );
+
+      consumer.on(
+        "transportclose",
+        function () {
+          this.removeConsumer(consumer.id);
+        }.bind(this)
+      );
+    }
+
 
   async getConsumeStream(producerId) {
     const { rtpCapabilities } = this.device;
-    const data = await this.socket.request("consume", {
-      rtpCapabilities,
-      consumerTransportId: this.consumerTransport.id, // might be
-      producerId,
-    });
-    const { id, kind, rtpParameters } = data;
+    // const data = await this.socket.request("consume", {
+    //   rtpCapabilities,
+    //   consumerTransportId: this.consumerTransport.id, // might be
+    //   producerId,
+    // });
+    var dataObj = {
+      commandType: "consume", Data: {
+        RoomId: this.room_id,
+        RtpCapabilities: rtpCapabilities,
+        consumerTransportId: this.consumerTransport.id,
+        ProducerId: producerId,
+      }
+    };
+    this.socket.sendCommand(JSON.stringify(dataObj));
+
+  }
+
+  async getConsumeStreamReturn(data) {
+    const { id, kind, rtpParameters, producerId } = data;
+
+    console.log("data>>>>", data);
 
     let codecOptions = {};
     const consumer = await this.consumerTransport.consume({
@@ -633,11 +640,11 @@ class RoomClient {
     const stream = new MediaStream();
     stream.addTrack(consumer.track);
 
-    return {
+    this.consumeMedia( {
       consumer,
       stream,
       kind,
-    };
+    });
   }
 
   closeProducer(type) {

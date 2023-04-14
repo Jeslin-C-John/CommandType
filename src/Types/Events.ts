@@ -39,4 +39,5 @@ export enum EventTypes {
     ProducersReceived = "ProducersReceived",
     Transportconnected = "Transportconnected",
     produced = "produced",
+    consumed = "consumed",
 }

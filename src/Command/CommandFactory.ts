@@ -10,6 +10,7 @@ import { createWebRtcTransportCommand } from './createWebRtcTransportCommand';
 import { getProducersCommand } from './getProducersCommand';
 import { connectTransportCommand } from './connectTransportCommand';
 import { produceCommand } from './produceCommand';
+import { consumeCommand } from './consumeCommand';
 
 
 
@@ -49,6 +50,9 @@ export class CommandFactory extends CommandFactoryBase {
                 break;
             case CommandType.produce:
                 newCommand = new produceCommand(this.connectionMnager,command.Data, command.clientID)
+                break;
+            case CommandType.consume:
+                newCommand = new consumeCommand(this.connectionMnager,command.Data, command.clientID)
                 break;
             default:
                 break;
