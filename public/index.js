@@ -1,5 +1,6 @@
 if (location.href.substr(0, 5) !== 'https') location.href = 'https' + location.href.substr(4, location.href.length - 4)
-const server = new window.conference('ws://localhost:3016');
+// const server = new window.conference('ws://localhost:3016');
+const server = new window.conference('wss://192.168.1.105:3016');
 
 let producer = null;
 let roomObj = null;
@@ -75,7 +76,7 @@ server.connect().then((events) => {
   });
   events.on(callbackEvents.producerClosed, function (data) {
     ConsoleEvent(data.Event, data)
-    roomObj.producerClosedReturn(data.Data.ProducerId,data.Data.type);
+    roomObj.producerClosedReturn(data.Data.ProducerId, data.Data.type);
   });
 })
 
@@ -113,7 +114,7 @@ function LoadDevice(EventName, EventData) {
 
 function InitWebrtcTransport(EventName, EventData) {
   ConsoleEvent(EventName, EventData);
-  _device=EventData.Data.Device
+  _device = EventData.Data.Device
   roomObj.createWebRtcTransport(_device, "producerTransport", _roomId);
 }
 
@@ -125,7 +126,7 @@ function CreateWebrtcTransport(EventName, EventData) {
   }
   else if (EventData.Data.transportType == "consumerTransport") {
     roomObj.initConsumerTransports(EventData.Data.params);
-    roomObj.getProducers(_username,_roomId);
+    roomObj.getProducers(_username, _roomId);
   }
 }
 
@@ -134,20 +135,20 @@ function ExitRoom(EventName, EventData) {
   roomObj.clean()
 }
 
-function getProducers(EventName, EventData){
+function getProducers(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
   roomObj.newProducers(EventData.Data.producerList);
   roomOpen();
 }
 
-function Transportconnected(EventName, EventData){
+function Transportconnected(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
-  roomObj.mediasoupCallback("connect",null)
+  roomObj.mediasoupCallback("connect", null)
 }
 
-function produced(EventName, EventData){
+function produced(EventName, EventData) {
   ConsoleEvent(EventName, EventData)
-  roomObj.mediasoupCallback("produce",EventData.Data)
+  roomObj.mediasoupCallback("produce", EventData.Data)
 }
 
 
@@ -279,11 +280,11 @@ function ConsoleEvent(EventName, EventData) {
   if (consoleEvent) {
     // console.log(EventName + " : "+ JSON.stringify(EventData))
     //alert(EventData.Data.Message)
-    if(EventData.Data.Message == undefined){
+    if (EventData.Data.Message == undefined) {
       console.log(EventData.Message)
       LiveConsole(EventData.Message);
     }
-    else{
+    else {
       console.log(EventData.Data.Message)
       LiveConsole(EventData.Data.Message);
     }
