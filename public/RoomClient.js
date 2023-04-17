@@ -269,6 +269,104 @@ class RoomClient {
 
   //////// MAIN FUNCTIONS /////////////
 
+
+  async replace(type, deviceId = null) {
+    let mediaConstraints = {}
+    let audio = false
+    switch (type) {
+      case mediaType.audio:
+        mediaConstraints = {
+          audio: {
+            deviceId: deviceId
+          },
+          video: false
+        }
+        audio = true
+        break
+      case mediaType.video:
+        mediaConstraints = {
+          audio: false,
+          video: {
+            width: {
+              min: 640,
+              ideal: 1920
+            },
+            height: {
+              min: 400,
+              ideal: 1080
+            },
+            deviceId: deviceId
+            /*aspectRatio: {
+                            ideal: 1.7777777778
+                        }*/
+          }
+        }
+        break
+      default:
+        return
+    }
+    if (!this.device.canProduce('video') && !audio) {
+      console.error('Cannot produce video')
+      return
+    }
+    console.log('Mediacontraints:', mediaConstraints)
+    let stream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+
+      const track = audio ? stream.getAudioTracks()[0] : stream.getVideoTracks()[0]
+
+      const params = {
+        track
+      }
+
+      if (!audio) {
+        params.encodings = [
+          {
+            rid: 'r0',
+            maxBitrate: 100000,
+            //scaleResolutionDownBy: 10.0,
+            scalabilityMode: 'S3T3'
+          },
+          {
+            rid: 'r1',
+            maxBitrate: 300000,
+            scalabilityMode: 'S3T3'
+          },
+          {
+            rid: 'r2',
+            maxBitrate: 900000,
+            scalabilityMode: 'S3T3'
+          }
+        ]
+        params.codecOptions = {
+          videoGoogleStartBitrate: 1000
+        }
+      }
+
+      if (!this.producerLabel.has(type)) {
+        console.log('There is no producer for this type ' + type)
+        return
+      }
+
+      let producer_id = await this.producerLabel.get(type)
+
+      producer = this.producers.get(producer_id);
+
+      await producer.replaceTrack(params);
+
+      if (!audio) {
+        let elem = document.getElementById(producer_id);
+        elem.srcObject = stream;
+      }
+
+
+    } catch (err) {
+      console.log('Produce error:', err)
+    }
+  }
+
+
   async produce(type, deviceId = null) {
     // debugger;
     let mediaConstraints = {};
@@ -568,7 +666,7 @@ class RoomClient {
 
   }
 
-  async consumeMedia ({ consumer, stream, kind }) {
+  async consumeMedia({ consumer, stream, kind }) {
     this.consumers.set(consumer.id, consumer);
     let elem;
     if (kind === "video") {
@@ -641,7 +739,7 @@ class RoomClient {
     const stream = new MediaStream();
     stream.addTrack(consumer.track);
 
-    this.consumeMedia( {
+    this.consumeMedia({
       consumer,
       stream,
       kind,
