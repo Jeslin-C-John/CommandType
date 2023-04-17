@@ -23,7 +23,8 @@ const callbackEvents = {
   ProducersReceived: "ProducersReceived",
   Transportconnected: "Transportconnected",
   produced: "produced",
-  consumed: "consumed"
+  consumed: "consumed",
+  producerClosed: "producerClosed"
 };
 
 
@@ -71,6 +72,10 @@ server.connect().then((events) => {
   events.on(callbackEvents.consumed, function (data) {
     ConsoleEvent(data.Event, data)
     roomObj.getConsumeStreamReturn(data.Data.params)
+  });
+  events.on(callbackEvents.producerClosed, function (data) {
+    ConsoleEvent(data.Event, data)
+    roomObj.producerClosedReturn(data.Data.ProducerId,data.Data.type);
   });
 })
 
@@ -142,7 +147,7 @@ function Transportconnected(EventName, EventData){
 
 function produced(EventName, EventData){
   ConsoleEvent(EventName, EventData)
-  roomObj.mediasoupCallback("produce",EventData.Data.producer_id)
+  roomObj.mediasoupCallback("produce",EventData.Data)
 }
 
 

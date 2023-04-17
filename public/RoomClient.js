@@ -144,7 +144,8 @@ class RoomClient {
     if (callbackType == "connect")
       this._mediaSoupCallback('success');
     else if (callbackType == "produce") {
-      this._mediaSoupCallback({ callbackData })
+      var _producerID = callbackData.producer_id;
+      this._mediaSoupCallback({ id: _producerID })
     }
   }
 
@@ -568,40 +569,40 @@ class RoomClient {
   }
 
   async consumeMedia ({ consumer, stream, kind }) {
-      this.consumers.set(consumer.id, consumer);
-      let elem;
-      if (kind === "video") {
-        elem = document.createElement("video");
-        elem.srcObject = stream;
-        elem.id = consumer.id;
-        elem.playsinline = false;
-        elem.autoplay = true;
-        elem.className = "vid";
-        this.remoteVideoEl.appendChild(elem);
-        this.handleFS(elem.id);
-      } else {
-        elem = document.createElement("audio");
-        elem.srcObject = stream;
-        elem.id = consumer.id;
-        elem.playsinline = false;
-        elem.autoplay = true;
-        this.remoteAudioEl.appendChild(elem);
-      }
-
-      consumer.on(
-        "trackended",
-        function () {
-          this.removeConsumer(consumer.id);
-        }.bind(this)
-      );
-
-      consumer.on(
-        "transportclose",
-        function () {
-          this.removeConsumer(consumer.id);
-        }.bind(this)
-      );
+    this.consumers.set(consumer.id, consumer);
+    let elem;
+    if (kind === "video") {
+      elem = document.createElement("video");
+      elem.srcObject = stream;
+      elem.id = consumer.id;
+      elem.playsinline = false;
+      elem.autoplay = true;
+      elem.className = "vid";
+      this.remoteVideoEl.appendChild(elem);
+      this.handleFS(elem.id);
+    } else {
+      elem = document.createElement("audio");
+      elem.srcObject = stream;
+      elem.id = consumer.id;
+      elem.playsinline = false;
+      elem.autoplay = true;
+      this.remoteAudioEl.appendChild(elem);
     }
+
+    consumer.on(
+      "trackended",
+      function () {
+        this.removeConsumer(consumer.id);
+      }.bind(this)
+    );
+
+    consumer.on(
+      "transportclose",
+      function () {
+        this.removeConsumer(consumer.id);
+      }.bind(this)
+    );
+  }
 
 
   async getConsumeStream(producerId) {
@@ -662,6 +663,13 @@ class RoomClient {
     //   producer_id,
     // });
 
+    var dataObj = { commandType: "producerClosed", Data: { RoomId: this.room_id, ProducerId: producer_id, Type: type } };
+    this.socket.sendCommand(JSON.stringify(dataObj))
+
+
+  }
+
+  producerClosedReturn(producer_id, type) {
     this.producers.get(producer_id).close();
     this.producers.delete(producer_id);
     this.producerLabel.delete(type);

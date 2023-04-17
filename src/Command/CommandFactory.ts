@@ -11,6 +11,7 @@ import { getProducersCommand } from './getProducersCommand';
 import { connectTransportCommand } from './connectTransportCommand';
 import { produceCommand } from './produceCommand';
 import { consumeCommand } from './consumeCommand';
+import { producerClosedCommand } from './producerClosedCommand';
 
 
 
@@ -53,6 +54,9 @@ export class CommandFactory extends CommandFactoryBase {
                 break;
             case CommandType.consume:
                 newCommand = new consumeCommand(this.connectionMnager,command.Data, command.clientID)
+                break;
+            case CommandType.producerClosed:
+                newCommand = new producerClosedCommand(this.connectionMnager,command.Data, command.clientID)
                 break;
             default:
                 break;
