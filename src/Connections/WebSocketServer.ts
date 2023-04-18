@@ -266,9 +266,6 @@ export class WebSocketServer implements IServerManager {
   getRoomManager(roomKey: string): RoomManager {
     throw new Error("Method not implemented.");
   }
-  sendToRoom(roomKey: string, sender: string, data: any): void {
-    throw new Error("Method not implemented.");
-  }
   getClient(clientID: string) {
     return this.clients.find((x) => x.clientID === clientID);
   }
@@ -290,9 +287,21 @@ export class WebSocketServer implements IServerManager {
     else console.log(`${target} Client Not Found.`);
   }
 
-  broadCast = (data: any): void => {
-    throw new Error("Method not implemented.");
+  broadCastRoom = (callBackCommand: any, room_id: any, serverManager: any): void => {
+    for (let key of roomList.get(room_id).peers.keys()) {
+      serverManager.sendTo(key, callBackCommand);
+    }
   };
+
+  sendToRoom(callBackCommand: any, room_id: any, serverManager: any, sender: any): void {
+    for (let key of roomList.get(room_id).peers.keys()) {
+      if (key !== sender) {
+        serverManager.sendTo(key, callBackCommand);
+      }
+    }
+  }
+
+
   addClient(name: string): ClientBase {
     throw new Error("Method not implemented.");
   }

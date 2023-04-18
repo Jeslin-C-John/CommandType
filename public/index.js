@@ -25,7 +25,8 @@ const callbackEvents = {
   Transportconnected: "Transportconnected",
   produced: "produced",
   consumed: "consumed",
-  producerClosed: "producerClosed"
+  producerClosed: "producerClosed",
+  ParticipantListUpdate: "ParticipantListUpdate"
 };
 
 
@@ -77,6 +78,10 @@ server.connect().then((events) => {
   events.on(callbackEvents.producerClosed, function (data) {
     ConsoleEvent(data.Event, data)
     roomObj.producerClosedReturn(data.Data.ProducerId, data.Data.type);
+  });
+  events.on(callbackEvents.ParticipantListUpdate, function (data) {
+    ConsoleEvent(data.Event, data.Data)
+    console.log(data.Data)
   });
 })
 
