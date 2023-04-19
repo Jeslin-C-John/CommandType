@@ -81,7 +81,7 @@ server.connect().then((events) => {
   });
   events.on(callbackEvents.ParticipantListUpdate, function (data) {
     ConsoleEvent(data.Event, data.Data)
-    console.log(data.Data)
+    console.log(data.Data.Data)
   });
 })
 

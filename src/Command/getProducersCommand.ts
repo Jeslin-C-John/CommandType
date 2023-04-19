@@ -57,26 +57,16 @@ export class getProducersCommand implements ICommand {
         this._serverManager.sendTo(this.ClientID, callBackCommand);
 
 
-        if (roomList.has(room_id)) {
-            var roomDetails = roomList.get(room_id);
+        var roomDetails = this._serverManager.getRoomDetails(room_id)
+
+        if (roomDetails !== null) {
+            callBackCommand.Data.Message = "ParticipantListUpdate";
+            callBackCommand.Data.Data = roomDetails;
+            callBackCommand.Event = EventTypes.ParticipantListUpdate;
+
+            this._serverManager.broadCastRoom(callBackCommand, room_id);
+            // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
         }
-
-        try {
-            var resp = [...roomDetails.peers.entries()].map(([id, peer]) => ({
-                id,
-                name: peer.name,
-                transports: [...peer.transports.keys()],
-                consumers: [...peer.consumers.keys()],
-                producers: [...peer.producers.keys()]
-            }));
-        } catch (error) { }
-
-        callBackCommand.Data.Message = "ParticipantListUpdate";
-        callBackCommand.Data.Data = resp;
-        callBackCommand.Event = EventTypes.ParticipantListUpdate;
-
-        this._serverManager.broadCastRoom(callBackCommand, room_id);
-        // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
 
     }
 

@@ -13,7 +13,7 @@ export class ExitRoomCommand implements ICommand {
     ClientID: string;
     CommandType: CommandType;
     // private roomList = new Map();
-   
+
 
     constructor(connectionManager: IServerManager, data: any, clientID: string) {
         this._serverManager = connectionManager;
@@ -41,9 +41,9 @@ export class ExitRoomCommand implements ICommand {
     async execute(): Promise<void> {
         const callBackCommand: any = {
             CommandType: CommandType.JoinRoom,
-            Data: { ClientID: this.ClientID, Message: "Exit Room Command",RoomList:null}
+            Data: { ClientID: this.ClientID, Message: "Exit Room Command", RoomList: null }
         }
-        
+
         let room_id = this.Data.RoomId;
         let name = this.Data.Name;
 
@@ -51,27 +51,41 @@ export class ExitRoomCommand implements ICommand {
             name: `${roomList.get(room_id) && roomList.get(room_id).getPeers().get(this.ClientID).name}`
         })
 
-  
-          if (!roomList.has(room_id)) {
+
+        if (!roomList.has(room_id)) {
             callBackCommand.Data.Message = "Room Not Available";
             callBackCommand.Event = EventTypes.RoomExitError;
             console.log('Room Not Available')
-          }
-          else{
+        }
+        else {
             // close transports
             await roomList.get(room_id).removePeer(this.ClientID)
             if (roomList.get(room_id).getPeers().size === 0) {
                 roomList.delete(room_id)
             }
-            
+
             callBackCommand.Data.Message = "Room exited successfully";
             callBackCommand.Data.RoomList = null;
             callBackCommand.Event = EventTypes.RoomExited;
-            console.log('Room exited', {room_id: room_id,name: name})
+            console.log('Room exited', { room_id: room_id, name: name })
 
-            room_id = null;
-          }
+        }
 
-          this._serverManager.sendTo(this.ClientID, callBackCommand);
+        this._serverManager.sendTo(this.ClientID, callBackCommand);
+
+
+
+        var roomDetails = this._serverManager.getRoomDetails(room_id)
+
+        if (roomDetails !== null) {
+            callBackCommand.Data.Message = "ParticipantListUpdate";
+            callBackCommand.Data.Data = roomDetails;
+            callBackCommand.Event = EventTypes.ParticipantListUpdate;
+
+            this._serverManager.broadCastRoom(callBackCommand, room_id);
+            // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
+        }
+
+        room_id = null;
     }
 }

@@ -10,4 +10,5 @@ export interface IServerManager {
     BroadcastToOtherParticipantsInRoom(callBackCommand: any, room_id: any, sender: any): void;
     cleanUp(): void;
     getMediasoupWorker(): any;
+    getRoomDetails(roomId: any): any;
 }

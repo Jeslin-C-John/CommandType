@@ -13,9 +13,6 @@ const mediasoup = require('mediasoup')
 const path = require('path')
 const app = express()
 
-
-
-
 export class SocketServer implements IServerManager {
 
   private readonly config: IConfigManager;
@@ -287,6 +284,10 @@ export class SocketServer implements IServerManager {
   }
 
   BroadcastToOtherParticipantsInRoom(callBackCommand: any, room_id: any, sender: any): void {
+    throw new Error("Method not implemented.");
+  }
+
+  getRoomDetails(roomId: any): any {
     throw new Error("Method not implemented.");
   }
 

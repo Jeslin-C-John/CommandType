@@ -25,7 +25,7 @@ export class produceCommand implements ICommand {
         if (!isValid) {
             const registerCallBack: any = {
                 CommandType: CommandType.RegisterCallback,
-                Data: { ClientID: this.ClientID, Message: "Validation Failed!",producer_id : null},
+                Data: { ClientID: this.ClientID, Message: "Validation Failed!", producer_id: null },
                 Event: EventTypes.RegistrationFailed
             }
             this._serverManager.sendTo(this.ClientID, registerCallBack);
@@ -36,34 +36,46 @@ export class produceCommand implements ICommand {
     async execute(): Promise<void> {
         const callBackCommand: any = {
             CommandType: CommandType.connectTransport,
-            Data: { ClientID: this.ClientID, Message: "produced Command"}
+            Data: { ClientID: this.ClientID, Message: "produced Command" }
         }
-        
+
         let room_id = this.Data.RoomId;
         let producerTransportId = this.Data.producerTransportId;
         let kind = this.Data.kind;
         let rtpParameters = this.Data.rtpParameters;
-        
-        if (!roomList.has(room_id)){
-          callBackCommand.Data.Message = "Room Already Exists."
-          callBackCommand.Event = EventTypes.RoomAlreadyExist;
-        } 
-        else{
-          
-          let producer_id = await roomList.get(room_id).produce(this.ClientID, producerTransportId, rtpParameters, kind)
 
-          console.log('Produce', {
-            type: `${kind}`,
-            name: `${roomList.get(room_id).getPeers().get(this.ClientID).name}`,
-            id: `${producer_id}`
-          }) 
+        if (!roomList.has(room_id)) {
+            callBackCommand.Data.Message = "Room Already Exists."
+            callBackCommand.Event = EventTypes.RoomAlreadyExist;
+        }
+        else {
 
-          callBackCommand.Data.Message = "produced";
-          callBackCommand.Data.producer_id = producer_id;
-          callBackCommand.Event = EventTypes.produced;
-          console.log('produced')
+            let producer_id = await roomList.get(room_id).produce(this.ClientID, producerTransportId, rtpParameters, kind)
+
+            console.log('Produce', {
+                type: `${kind}`,
+                name: `${roomList.get(room_id).getPeers().get(this.ClientID).name}`,
+                id: `${producer_id}`
+            })
+
+            callBackCommand.Data.Message = "produced";
+            callBackCommand.Data.producer_id = producer_id;
+            callBackCommand.Event = EventTypes.produced;
+            console.log('produced')
         }
 
         this._serverManager.sendTo(this.ClientID, callBackCommand);
+
+
+        var roomDetails = this._serverManager.getRoomDetails(room_id)
+
+        if (roomDetails !== null) {
+            callBackCommand.Data.Message = "ParticipantListUpdate";
+            callBackCommand.Data.Data = roomDetails;
+            callBackCommand.Event = EventTypes.ParticipantListUpdate;
+
+            this._serverManager.broadCastRoom(callBackCommand, room_id);
+            // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
+        }
     }
 }
