@@ -287,7 +287,7 @@ export class SocketServer implements IServerManager {
     throw new Error("Method not implemented.");
   }
 
-  getRoomDetails(roomId: any): any {
+  sendParticipantList(roomId: any): void {
     throw new Error("Method not implemented.");
   }
 

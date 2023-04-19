@@ -67,15 +67,8 @@ export class produceCommand implements ICommand {
         this._serverManager.sendTo(this.ClientID, callBackCommand);
 
 
-        var roomDetails = this._serverManager.getRoomDetails(room_id)
+        this._serverManager.sendParticipantList(room_id)
 
-        if (roomDetails !== null) {
-            callBackCommand.Data.Message = "ParticipantListUpdate";
-            callBackCommand.Data.Data = roomDetails;
-            callBackCommand.Event = EventTypes.ParticipantListUpdate;
 
-            this._serverManager.broadCastRoom(callBackCommand, room_id);
-            // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
-        }
     }
 }

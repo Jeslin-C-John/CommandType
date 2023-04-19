@@ -75,16 +75,8 @@ export class ExitRoomCommand implements ICommand {
 
 
 
-        var roomDetails = this._serverManager.getRoomDetails(room_id)
 
-        if (roomDetails !== null) {
-            callBackCommand.Data.Message = "ParticipantListUpdate";
-            callBackCommand.Data.Data = roomDetails;
-            callBackCommand.Event = EventTypes.ParticipantListUpdate;
-
-            this._serverManager.broadCastRoom(callBackCommand, room_id);
-            // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
-        }
+        this._serverManager.sendParticipantList(room_id)
 
         room_id = null;
     }

@@ -192,18 +192,8 @@ export class WebSocketServer implements IServerManager {
     console.log(`${name} disconnected`);
 
 
-    var roomDetails = this.getRoomDetails(roomId)
+    this.sendParticipantList(roomId)
 
-    if (roomDetails !== null) {
-      const callBackCommand: any = {
-        CommandType: "ParticipantListUpdate",
-        Data: { Data: roomDetails, Message: "ParticipantListUpdate" }
-      }
-      callBackCommand.Event = EventTypes.ParticipantListUpdate;
-
-      this.broadCastRoom(callBackCommand, roomId);
-      // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
-    }
   }
 
   getMediasoupWorker() {
@@ -263,7 +253,7 @@ export class WebSocketServer implements IServerManager {
     this.sendTo(recipient, callBackCommand);
   }
 
-  getRoomDetails(roomId: any) {
+  sendParticipantList(roomId: any): void {
 
     if (roomList.has(roomId)) {
       var roomDetails = roomList.get(roomId);
@@ -279,7 +269,17 @@ export class WebSocketServer implements IServerManager {
       }));
     } catch (error) { resp = null }
 
-    return resp;
+    if (resp !== null) {
+      const callBackCommand: any = {
+        CommandType: "ParticipantListUpdate",
+        Data: { Data: resp, Message: "ParticipantListUpdate" }
+      }
+      callBackCommand.Event = EventTypes.ParticipantListUpdate;
+
+      this.broadCastRoom(callBackCommand, roomId);
+      // this.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
+    }
+
   }
 
 }
