@@ -9,7 +9,7 @@ config({ path: `${__dirname}/.env` });
 console.log('Application starting...');
 
 const server = ServerFactoryInstance.GetServer();
-// const database = ServerFactoryInstance.GetDatabase();
+const database = ServerFactoryInstance.GetDatabase();
 
 console.log('Starting Server...')
 
@@ -17,8 +17,8 @@ server.setCommandHandler(new CommandHandler(new CommandFactory(server)))
       .usePort(parseInt(process.env.MEDIASOUP_SERVER_PORT))
       .connect();
 
-// console.log('Initializing Db..')
-// database.initializeDb();
+console.log('Initializing Db..')
+database.initializeDb();
 
 
 

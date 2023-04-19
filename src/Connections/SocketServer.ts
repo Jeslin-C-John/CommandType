@@ -52,6 +52,7 @@ export class SocketServer implements IServerManager {
     this.defaultPort = port;
     return this;
   }
+
   connect(): IServerManager {
     this.createWorkers();
     this.SocketConnect(this.io, this.roomList);
@@ -66,7 +67,6 @@ export class SocketServer implements IServerManager {
     this.commandHandler = commandHandler;
     return this;
   }
-
 
   async createWorkers(): Promise<void> {
     let { numWorkers } = this.config.Settings.mediasoup
@@ -86,7 +86,6 @@ export class SocketServer implements IServerManager {
       this.workers.push(worker)
     }
   }
-
 
   SocketConnect(io: any, roomList: any) {
 
@@ -279,40 +278,18 @@ export class SocketServer implements IServerManager {
     return worker
   }
 
-
-  broadCastToGroup(group: string, data: any): void {
-    throw new Error("Method not implemented.");
-  }
   sendTo(target: string, data: any): void {
     throw new Error("Method not implemented.");
   }
-  broadCastRoom(callBackCommand: any, room_id: any, serverManager: any): void {
+
+  broadCastRoom(callBackCommand: any, room_id: any): void {
     throw new Error("Method not implemented.");
   }
-  sendToRoom(callBackCommand: any, room_id: any, serverManager: any, sender: any): void {
+
+  BroadcastToOtherParticipantsInRoom(callBackCommand: any, room_id: any, sender: any): void {
     throw new Error("Method not implemented.");
   }
-  getMediaServer() {
-    throw new Error("Method not implemented.");
-  }
-  getEndPoint() {
-    throw new Error("Method not implemented.");
-  }
-  getOutGoingStreamInfo() {
-    throw new Error("Method not implemented.");
-  }
-  setTransporder(transporder: any): void {
-    throw new Error("Method not implemented.");
-  }
-  setTransport(transport: any, key: string): void {
-    throw new Error("Method not implemented.");
-  }
-  getTransport(key?: string | undefined) {
-    throw new Error("Method not implemented.");
-  }
-  selectLayer(msg: any): void {
-    throw new Error("Method not implemented.");
-  }
+
   cleanUp(): void {
     throw new Error("Method not implemented.");
   }

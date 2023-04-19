@@ -34,7 +34,6 @@ export class WebSocketServer implements IServerManager {
   private readonly config: IConfigManager;
   private workers: any = [];
   private nextMediasoupWorkerIdx = 0;
-  // private roomList = new Map();
 
   constructor() {
     this.config = new ConfigManager();
@@ -77,8 +76,6 @@ export class WebSocketServer implements IServerManager {
       });
 
       this.workers.push(worker);
-      // let test = JSON.parse(worker);
-      // console.log("Worker: "+ test);
     }
   }
 
@@ -176,40 +173,6 @@ export class WebSocketServer implements IServerManager {
     console.log("Server Closed");
   }
 
-  // async CreateRoom(room_id:any):Promise<any>{
-  //     console.log("RoomId:"+room_id);
-  //     if (this.roomList.has(room_id)) {
-  //         return ('already exists')
-  //       } else {
-  //         console.log('Created room', { room_id: room_id })
-  //         let worker = await this.getMediasoupWorker()
-  //         this.roomList.set(room_id, new RoomManager(room_id, worker, this.server))
-  //         return(room_id)
-  //       }
-  // }
-
-  // JoinRoom(room_id:any,name:string){
-  //     console.log('User joined', {
-  //         room_id: room_id,
-  //         name: name
-  //       })
-
-  //       if (!this.roomList.has(room_id)) {
-  //         return cb({
-  //           error: 'Room does not exist'
-  //         })
-  //       }
-
-  //       this.roomList.get(room_id).addPeer(new PeerManager(room_id, name))
-  //       socket.room_id = room_id
-
-  //       //cb(roomList.get(room_id).toJson())
-  // }
-
-  // Callback():any{
-
-  // }
-
   removeUserByClientID(clientId) {
 
     var roomId = null;
@@ -239,76 +202,48 @@ export class WebSocketServer implements IServerManager {
     return worker;
   }
 
-  getMediaServer() {
-    throw new Error("Method not implemented.");
+  requestHasAuthToken(token: string): string {
+    return token ? token : this.generateClientID();
   }
-  getEndPoint() {
-    throw new Error("Method not implemented.");
+
+  private generateClientID(): string {
+    return uuid();
   }
-  getOutGoingStreamInfo() {
-    throw new Error("Method not implemented.");
-  }
-  setTransporder(transporder: any): void {
-    throw new Error("Method not implemented.");
-  }
-  setTransport(transport: any, key: string): void {
-    throw new Error("Method not implemented.");
-  }
-  getTransport(key?: string) {
-    throw new Error("Method not implemented.");
-  }
-  selectLayer(msg: any): void {
-    throw new Error("Method not implemented.");
-  }
-  async loadRooms(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  getRoomManager(roomKey: string): RoomManager {
-    throw new Error("Method not implemented.");
-  }
+
   getClient(clientID: string) {
     return this.clients.find((x) => x.clientID === clientID);
   }
+
   getGroup(groupName: string): ClientBase[] {
     return this.clients.filter((x) => x.GroupName === groupName);
   }
+
   getClients(): ClientBase[] {
     return this.clients;
   }
-  broadCastToGroup = (group: string, data: any): void => {
-    throw new Error("Method not implemented.");
-  };
 
   sendTo(target: string, data: any): void {
     var targetClient = this.getClient(target);
     if (targetClient)
-      //if (targetClient && this.getClient(target))
       this.getClient(target).ClientSocket.sendUTF(JSON.stringify(data));
     else console.log(`${target} Client Not Found.`);
   }
 
-  broadCastRoom = (callBackCommand: any, room_id: any, serverManager: any): void => {
+
+
+
+  broadCastRoom = (callBackCommand: any, room_id: any): void => {
     for (let key of roomList.get(room_id).peers.keys()) {
-      serverManager.sendTo(key, callBackCommand);
+      this.sendTo(key, callBackCommand);
     }
   };
 
-  sendToRoom(callBackCommand: any, room_id: any, serverManager: any, sender: any): void {
+  BroadcastToOtherParticipantsInRoom(callBackCommand: any, room_id: any, sender: any): void {
     for (let key of roomList.get(room_id).peers.keys()) {
       if (key !== sender) {
-        serverManager.sendTo(key, callBackCommand);
+        this.sendTo(key, callBackCommand);
       }
     }
   }
-
-
-  addClient(name: string): ClientBase {
-    throw new Error("Method not implemented.");
-  }
-  requestHasAuthToken(token: string): string {
-    return token ? token : this.generateClientID();
-  }
-  private generateClientID(): string {
-    return uuid();
-  }
+  
 }

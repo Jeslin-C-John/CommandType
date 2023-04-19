@@ -75,8 +75,8 @@ export class getProducersCommand implements ICommand {
         callBackCommand.Data.Data = resp;
         callBackCommand.Event = EventTypes.ParticipantListUpdate;
 
-        this._serverManager.broadCastRoom(callBackCommand, room_id, this._serverManager);
-        // this._serverManager.sendToRoom(callBackCommand, room_id, this._serverManager, this.ClientID);
+        this._serverManager.broadCastRoom(callBackCommand, room_id);
+        // this._serverManager.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
 
     }
 
