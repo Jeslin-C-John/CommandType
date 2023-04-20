@@ -262,12 +262,18 @@ export class WebSocketServer implements IServerManager {
 
     try {
       var resp = [...roomDetails.peers.entries()].map(([id, peer]) => ({
-        id,
-        name: peer.name,
-        transports: [...peer.transports.keys()],
+        user_id: id,
+        user_name: peer.name,
         consumers: [...peer.consumers.keys()],
         producers: [...peer.producers.keys()]
       }));
+      // var resp = [...roomDetails.peers.entries()].map(([id, peer]) => ({
+      //   id,
+      //   name: peer.name,
+      //   transports: [...peer.transports.keys()],
+      //   consumers: [...peer.consumers.keys()],
+      //   producers: [...peer.producers.keys()]
+      // }));
     } catch (error) { resp = null }
 
     if (resp !== null) {
@@ -278,25 +284,25 @@ export class WebSocketServer implements IServerManager {
       callBackCommand.Event = EventTypes.ParticipantListUpdate;
 
       this.broadCastRoom(callBackCommand, roomId);
-      this.PushUserDeatilsToMogoDB(roomId,resp)
+      this.PushUserDeatilsToMogoDB(roomId, resp)
       // this.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
     }
 
   }
 
-  PushUserDeatilsToMogoDB(roomId: any,userDetails:any){
+  PushUserDeatilsToMogoDB(roomId: any, userDetails: any) {
     let IRoomRepository = new RoomRepository();
 
     IRoomRepository.findRoomByName(roomId).then(
-        function(res){
-            if(res != undefined && res != null){
-                IRoomRepository.updateUserList(roomId,userDetails);
-            }
-        } ,
-        function(err){ 
-            console.error(`Something went wrong: ${err}`)
+      function (res) {
+        if (res != undefined && res != null) {
+          IRoomRepository.updateUserList(roomId, userDetails);
         }
+      },
+      function (err) {
+        console.error(`Something went wrong: ${err}`)
+      }
     );
-  } 
+  }
 
 }
