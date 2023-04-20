@@ -19,4 +19,18 @@ export class RoomRepository implements IRoomRepository {
         const createNewRoom = await Room.create(room)
         return createNewRoom
     }
+    async updateUserList(RoomName: number,userDetails:any): Promise<any> {
+        const UpdateResult = await Room.updateOne(
+            { name: RoomName },
+            { $set: { users: userDetails } }
+         )
+        return UpdateResult
+    }
+    async updateUserListPush(RoomName: number,userDetails:any): Promise<any> {
+        const UpdateResult = await Room.updateOne(
+            { name: RoomName },
+            { $push: { users: userDetails } }
+         )
+        return UpdateResult
+    }
 }

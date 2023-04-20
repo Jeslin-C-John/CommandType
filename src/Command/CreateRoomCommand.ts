@@ -58,21 +58,6 @@ export class CreateRoomCommand implements ICommand {
             roomList.set(room_id, room)
             console.log("**************************************************")
 
-
-
-
-            // let IRoomRepository = new RoomRepository();
-            // let RoomDetails = new Room({
-            //     name: 'Bill',
-            //     email: 'bill@initech.com',
-            //     avatar: 'https://i.imgur.com/dM7Thhn.png'
-            // })
-
-            // IRoomRepository.createRoom(RoomDetails);
-
-
-
-
         }
         console.log("clientId", this.ClientID)
         this._serverManager.sendTo(this.ClientID, registerCallBack);

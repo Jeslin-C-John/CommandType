@@ -5,6 +5,8 @@ import { RoomManager } from "../Connections/RoomManager";
 import { CommandType } from "../Types/CommandType";
 import { EventTypes } from "../Types/Events";
 import { roomList } from "../Models/RoomLists";
+import { RoomRepository } from "../Repositories/RoomRepository";
+import { Room } from "../Schemas/Room";
 
 
 export class JoinRoomCommand implements ICommand {
@@ -47,11 +49,6 @@ export class JoinRoomCommand implements ICommand {
         let room_id = this.Data.RoomId;
         let name = this.Data.Name;
 
-        // console.log("******************************* wesocket ***********************");
-        // console.log(this.ClientID);
-        // console.log(this._serverManager);
-        // console.log("******************************* wesocket end ***********************");
-  
           if (!roomList.has(room_id)) {
             callBackCommand.Data.Message = "Room Not Available";
             callBackCommand.Event = EventTypes.JoinError;
@@ -66,6 +63,24 @@ export class JoinRoomCommand implements ICommand {
             console.log('User joined', {room_id: room_id,name: name})
           }
 
-          this._serverManager.sendTo(this.ClientID, callBackCommand);
+          let IRoomRepository = new RoomRepository();
+          let RoomDetails = new Room({
+              name: room_id,
+              users:[]
+          })
+
+          IRoomRepository.findRoomByName(room_id).then(
+              function(res){
+                  if(res == undefined || res == null){
+                      IRoomRepository.createRoom(RoomDetails);
+                  }
+              } ,
+              function(err){ 
+                  console.error(`Something went wrong: ${err}`)
+              }
+          );
+
+
+        this._serverManager.sendTo(this.ClientID, callBackCommand);
     }
 }

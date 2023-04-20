@@ -13,6 +13,7 @@ import { BrowserClient } from "../BrowserClient";
 import { ClientBase } from "../Abstracts/ClientBase";
 import { PeerManager } from "./PeerManager";
 import { roomList } from "../Models/RoomLists";
+import { RoomRepository } from "../Repositories/RoomRepository";
 
 const express = require("express");
 const path = require("path");
@@ -277,9 +278,25 @@ export class WebSocketServer implements IServerManager {
       callBackCommand.Event = EventTypes.ParticipantListUpdate;
 
       this.broadCastRoom(callBackCommand, roomId);
+      this.PushUserDeatilsToMogoDB(roomId,resp)
       // this.BroadcastToOtherParticipantsInRoom(callBackCommand, room_id, this.ClientID);
     }
 
   }
+
+  PushUserDeatilsToMogoDB(roomId: any,userDetails:any){
+    let IRoomRepository = new RoomRepository();
+
+    IRoomRepository.findRoomByName(roomId).then(
+        function(res){
+            if(res != undefined && res != null){
+                IRoomRepository.updateUserList(roomId,userDetails);
+            }
+        } ,
+        function(err){ 
+            console.error(`Something went wrong: ${err}`)
+        }
+    );
+  } 
 
 }
