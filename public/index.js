@@ -26,7 +26,9 @@ const callbackEvents = {
   produced: "produced",
   consumed: "consumed",
   producerClosed: "producerClosed",
-  ParticipantListUpdate: "ParticipantListUpdate"
+  ParticipantListUpdate: "ParticipantListUpdate",
+  consumerResumed: "consumerResumed",
+  consumerPaused: "consumerPaused"
 };
 
 
@@ -81,7 +83,13 @@ server.connect().then((events) => {
   });
   events.on(callbackEvents.ParticipantListUpdate, function (data) {
     ConsoleEvent(data.Event, data.Data)
-    console.log(data.Data.Data)
+    roomObj.updateRoom(data.Data.Data);
+  });
+  events.on(callbackEvents.consumerPaused, function (data) {
+    ConsoleEvent(data.Event, data)
+  });
+  events.on(callbackEvents.consumerResumed, function (data) {
+    ConsoleEvent(data.Event, data)
   });
 })
 

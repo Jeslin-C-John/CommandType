@@ -12,6 +12,8 @@ import { connectTransportCommand } from './connectTransportCommand';
 import { produceCommand } from './produceCommand';
 import { consumeCommand } from './consumeCommand';
 import { producerClosedCommand } from './producerClosedCommand';
+import { pauseConsumerCommand } from './pauseConsumerCommand';
+import { resumeConsumerCommand } from './resumeConsumerCommand';
 
 
 
@@ -23,8 +25,8 @@ export class CommandFactory extends CommandFactoryBase {
     // getCommand(command: any, connection: any): ICommand {
     //     throw new Error('Method not implemented.');
     // }
-    
-    getCommand(command: any,connection:any): ICommand {
+
+    getCommand(command: any, connection: any): ICommand {
         var newCommand: ICommand;
         switch (command.commandType) {
 
@@ -41,22 +43,28 @@ export class CommandFactory extends CommandFactoryBase {
                 newCommand = new ExitRoomCommand(this.connectionMnager, command.Data, command.clientID);
                 break;
             case CommandType.getRouterRtpCapabilities:
-                newCommand = new getRouterRtpCapabilitiesCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new getRouterRtpCapabilitiesCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             case CommandType.getProducers:
-                newCommand = new getProducersCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new getProducersCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             case CommandType.connectTransport:
-                newCommand = new connectTransportCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new connectTransportCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             case CommandType.produce:
-                newCommand = new produceCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new produceCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             case CommandType.consume:
-                newCommand = new consumeCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new consumeCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             case CommandType.producerClosed:
-                newCommand = new producerClosedCommand(this.connectionMnager,command.Data, command.clientID)
+                newCommand = new producerClosedCommand(this.connectionMnager, command.Data, command.clientID)
+                break;
+            case CommandType.pauseConsumer:
+                newCommand = new pauseConsumerCommand(this.connectionMnager, command.Data, command.clientID)
+                break;
+            case CommandType.resumeConsumer:
+                newCommand = new resumeConsumerCommand(this.connectionMnager, command.Data, command.clientID)
                 break;
             default:
                 break;
