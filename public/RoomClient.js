@@ -15,6 +15,14 @@ const _EVENTS = {
 };
 //const ws = new WebSocket("ws://localhost:3016");
 
+
+var audioProducerId = null;
+var videoProducerId = null;
+var sysAudio = false;
+let elem;
+var userName = null;
+var roomDetailsObj;
+
 class RoomClient {
   socket = null;
   _mediaSoupCallback = null;
@@ -52,6 +60,155 @@ class RoomClient {
       }.bind(this)
     );
 
+  }
+
+
+
+
+  ////////// PartcipantList and Pause-Resume /////////
+
+  updateRoom(participantListObj) {
+
+
+    roomDetailsObj = participantListObj;
+
+    var participantList = document.getElementById("participantList");
+    participantList.innerHTML = "";
+    roomDetailsObj.forEach(participantElement => {
+      if (participantElement.user_name == userName) { return; }
+      var row = document.createElement("tr");
+      var nameCell = document.createElement("td");
+      nameCell.innerText = participantElement.user_name;
+
+      var pauseAudioButtonCell = document.createElement("td");
+      var pauseAudioButton = document.createElement("button");
+      pauseAudioButton.innerText = "Mute Audio";
+      pauseAudioButton.id = participantElement.user_id;
+      pauseAudioButton.addEventListener("click", async function () {
+        var producerIdcsv = pauseAudioButton.getAttribute("data-producerArray");
+        const selectedProducerArray = producerIdcsv.split(',');
+        var consumerArray = roomObj.getAudioConsumerId(selectedProducerArray);
+        consumerArray.forEach(element => {
+          roomObj.pauseConsumer(element);
+        });
+      });
+      pauseAudioButtonCell.appendChild(pauseAudioButton);
+
+      var resumeAudioButtonCell = document.createElement("td");
+      var resumeAudioButton = document.createElement("button");
+      resumeAudioButton.innerText = "Unmute Audio";
+      resumeAudioButton.id = participantElement.user_id;
+      resumeAudioButton.addEventListener("click", async function () {
+        var producerIdcsv = resumeAudioButton.getAttribute("data-producerArray");
+        const selectedProducerArray = producerIdcsv.split(',');
+        var consumerArray = roomObj.getAudioConsumerId(selectedProducerArray);
+        consumerArray.forEach(element => {
+          roomObj.resumeConsumer(element);
+        });
+      });
+      resumeAudioButtonCell.appendChild(resumeAudioButton);
+
+      var pauseVideoButtonCell = document.createElement("td");
+      var pauseVideoButton = document.createElement("button");
+      pauseVideoButton.innerText = "Pause Video";
+      pauseVideoButton.id = participantElement.user_id;
+      pauseVideoButton.addEventListener("click", async function () {
+        var producerIdcsv = pauseVideoButton.getAttribute("data-producerArray");
+        const selectedProducerArray = producerIdcsv.split(',');
+        var consumerArray = roomObj.getVideoConsumerId(selectedProducerArray);
+        consumerArray.forEach(element => {
+          roomObj.pauseConsumer(element);
+        });
+      });
+      pauseVideoButtonCell.appendChild(pauseVideoButton);
+
+      var resumeVideoButtonCell = document.createElement("td");
+      var resumeVideoButton = document.createElement("button");
+      resumeVideoButton.innerText = "Play Video";
+      resumeVideoButton.id = participantElement.user_id;
+      resumeVideoButton.addEventListener("click", async function () {
+        var producerIdcsv = resumeVideoButton.getAttribute("data-producerArray");
+        const selectedProducerArray = producerIdcsv.split(',');
+        var consumerArray = roomObj.getVideoConsumerId(selectedProducerArray);
+        consumerArray.forEach(element => {
+          roomObj.resumeConsumer(element);
+        });
+      });
+      resumeVideoButtonCell.appendChild(resumeVideoButton);
+
+      row.appendChild(nameCell);
+      row.appendChild(pauseAudioButtonCell);
+      row.appendChild(resumeAudioButtonCell);
+      row.appendChild(pauseVideoButtonCell);
+      row.appendChild(resumeVideoButtonCell);
+      participantList.appendChild(row);
+
+      var producerArray = [];
+      participantElement.producers.forEach(producerElement => {
+        producerArray.push(producerElement);
+      });
+      pauseAudioButton.setAttribute(`data-producerArray`, producerArray);
+      resumeAudioButton.setAttribute(`data-producerArray`, producerArray);
+      pauseVideoButton.setAttribute(`data-producerArray`, producerArray);
+      resumeVideoButton.setAttribute(`data-producerArray`, producerArray);
+    });
+  }
+
+
+  getAudioConsumerId(producerArr) {
+
+    var confirmedConsumerArr = [];
+
+    const divElement = document.querySelector('#remoteAudios');
+    const audioElementsArr = divElement.getElementsByTagName('audio');
+
+    for (let i = 0; i < audioElementsArr.length; i++) {
+      const audioId = audioElementsArr[i].getAttribute('data-producer_id');
+      var consumerId;
+
+      producerArr.forEach(element => {
+        if (element == audioId) {
+          consumerId = audioElementsArr[i].getAttribute('id');
+          // this.pauseConsumer(consumerId);
+          confirmedConsumerArr.push(consumerId);
+        }
+      });
+    }
+    return confirmedConsumerArr;
+  }
+
+
+  getVideoConsumerId(producerArr) {
+
+    var confirmedConsumerArr = [];
+
+    const divElement = document.querySelector('#remoteVideos');
+    const audioElementsArr = divElement.getElementsByTagName('video');
+
+    for (let i = 0; i < audioElementsArr.length; i++) {
+      const audioId = audioElementsArr[i].getAttribute('data-producer_id');
+      var consumerId;
+
+      producerArr.forEach(element => {
+        if (element == audioId) {
+          consumerId = audioElementsArr[i].getAttribute('id');
+          // this.pauseConsumer(consumerId);
+          confirmedConsumerArr.push(consumerId);
+        }
+      });
+    }
+    return confirmedConsumerArr;
+  }
+
+
+  async pauseConsumer(consumerId) {
+    var dataObj = { commandType: "pauseConsumer", Data: { RoomId: this.room_id, consumerId: consumerId } };
+    await this.socket.sendCommand(JSON.stringify(dataObj));
+  }
+
+  async resumeConsumer(consumerId) {
+    var dataObj = { commandType: "resumeConsumer", Data: { RoomId: this.room_id, consumerId: consumerId } };
+    await this.socket.sendCommand(JSON.stringify(dataObj));
   }
 
   ////////// INIT /////////
@@ -95,6 +252,11 @@ class RoomClient {
     });
 
     this.socket.emitCommand(data);
+
+    // this.produce(RoomClient.mediaType.video, videoSelect.value);
+    // this.produce(RoomClient.mediaType.audio, audioSelect.value);
+
+    userName = document.getElementById("nameInput").value;
   }
 
   consumerClosed(consumer_id) {
@@ -368,11 +530,9 @@ class RoomClient {
 
 
   async produce(type, deviceId = null) {
-    // debugger;
     let mediaConstraints = {};
     let audio = false;
     let screen = false;
-    var sysAudio = false;
     switch (type) {
       case mediaType.audio:
         mediaConstraints = {
@@ -428,31 +588,32 @@ class RoomClient {
         : await navigator.mediaDevices.getUserMedia(mediaConstraints);
       console.log(navigator.mediaDevices.getSupportedConstraints());
 
-      // console.log("stream.getAudioTracks()[0]", stream.getAudioTracks()[0]);
-      // console.log("stream.getVideoTracks()[0]", stream.getVideoTracks()[0]);
+      console.log("stream.getAudioTracks()[0]", stream.getAudioTracks()[0]);
+      console.log("stream.getVideoTracks()[0]", stream.getVideoTracks()[0]);
+
+      if (stream.getAudioTracks()[0] != undefined && type == "screenType") sysAudio = true;
 
       var params = {};
       var params1 = {};
       var params2 = {};
       var track = null;
-      let elem;
+
       if (screen == false) {
         track = audio ? stream.getAudioTracks()[0] : stream.getVideoTracks()[0];
         params = {
           track,
         };
-      }
-      else {
-        track = stream.getAudioTracks()[0];
+      } else {
+        if (sysAudio) track = stream.getAudioTracks()[0];
 
         console.log("track", track);
 
-        if (track !== undefined) {
+        if (track !== null) {
           sysAudio = true;
+          params1 = {
+            track,
+          };
         }
-        params1 = {
-          track,
-        };
 
         track = stream.getVideoTracks()[0];
 
@@ -480,7 +641,7 @@ class RoomClient {
             maxBitrate: 300000,
             scaleResolutionDownBy: 1.0,
             scalabilityMode: "L1T3",
-          }
+          },
         ];
         params.codecOptions = {
           videoGoogleStartBitrate: 1000,
@@ -488,7 +649,6 @@ class RoomClient {
       }
 
       if (screen == false) {
-        debugger;
         producer = await this.producerTransport.produce(params);
         console.log("Producer", producer);
         this.producers.set(producer.id, producer);
@@ -552,6 +712,8 @@ class RoomClient {
           console.log("Producer", producer);
           this.producers.set(producer.id, producer);
 
+          audioProducerId = producer.id;
+
           producer.on("trackended", () => {
             this.closeProducer(type);
           });
@@ -600,15 +762,17 @@ class RoomClient {
         console.log("Producer", producer);
         this.producers.set(producer.id, producer);
 
-        elem = document.createElement("video");
-        elem.srcObject = stream;
-        elem.id = producer.id;
-        elem.playsinline = false;
-        elem.autoplay = true;
-        elem.muted = true;
-        elem.className = "vid";
-        this.localMediaEl.appendChild(elem);
-        this.handleFS(elem.id);
+        videoProducerId = producer.id;
+
+        // elem = document.createElement("video");
+        // elem.srcObject = stream;
+        // elem.id = producer.id;
+        // elem.playsinline = false;
+        // elem.autoplay = true;
+        // elem.muted = true;
+        // elem.className = "vid";
+        // this.localMediaEl.appendChild(elem);
+        // this.handleFS(elem.id);
 
         producer.on("trackended", () => {
           this.closeProducer(type);
@@ -666,22 +830,50 @@ class RoomClient {
 
   }
 
-  async consumeMedia({ consumer, stream, kind }) {
+  async consumeMedia({ consumer, stream, kind, producerId }) {
     this.consumers.set(consumer.id, consumer);
     let elem;
     if (kind === "video") {
-      elem = document.createElement("video");
+
+      const newParentDiv = document.createElement("div");
+      newParentDiv.className = "parent-div";
+      newParentDiv.setAttribute("data-RemVidConId", consumer.id);
+      newParentDiv.setAttribute("data-RemVidProId", producerId);
+      const newChild1Div = document.createElement("div");
+      newChild1Div.className = "child-div1";
+      const elem = document.createElement("video");
       elem.srcObject = stream;
       elem.id = consumer.id;
+      let name = "";
+      roomDetailsObj.forEach((userArr) => {
+        userArr.producers.forEach((producerArr) => {
+          if (producerArr == producerId) {
+            name = userArr.user_name;
+          }
+        });
+      });
+      elem.setAttribute("data-user_name", name);
+      elem.setAttribute("data-producer_id", producerId);
       elem.playsinline = false;
       elem.autoplay = true;
-      elem.className = "vid";
-      this.remoteVideoEl.appendChild(elem);
+      elem.className = "vidRem";
+      newChild1Div.appendChild(elem);
+      newParentDiv.appendChild(newChild1Div);
+      this.remoteVideoEl.appendChild(newParentDiv);
       this.handleFS(elem.id);
+      const newChild2Div = document.createElement("div");
+      newChild2Div.className = "child-div2";
+      const Pname = document.createElement("p");
+      Pname.textContent = name;
+      newChild2Div.appendChild(Pname);
+      newParentDiv.appendChild(newChild2Div);
+
+
     } else {
       elem = document.createElement("audio");
       elem.srcObject = stream;
       elem.id = consumer.id;
+      elem.setAttribute("data-producer_id", producerId);
       elem.playsinline = false;
       elem.autoplay = true;
       this.remoteAudioEl.appendChild(elem);
@@ -743,11 +935,11 @@ class RoomClient {
       consumer,
       stream,
       kind,
+      producerId,
     });
   }
 
   closeProducer(type) {
-    // debugger;
     if (!this.producerLabel.has(type)) {
       console.log("There is no producer for this type " + type);
       return;
@@ -757,12 +949,18 @@ class RoomClient {
     console.log("this", this);
     console.log("Close producer", producer_id);
 
-    // this.socket.emit("producerClosed", {
-    //   producer_id,
-    // });
 
     var dataObj = { commandType: "producerClosed", Data: { RoomId: this.room_id, ProducerId: producer_id, Type: type } };
     this.socket.sendCommand(JSON.stringify(dataObj))
+
+    if (audioProducerId != null && type == "screenType" && sysAudio) {
+      sysAudio = false;
+      let producer_id = audioProducerId;
+
+      var dataObj = { commandType: "producerClosed", Data: { RoomId: this.room_id, ProducerId: producer_id, Type: type } };
+      this.socket.sendCommand(JSON.stringify(dataObj))
+
+    }
 
 
   }
@@ -772,9 +970,9 @@ class RoomClient {
     this.producers.delete(producer_id);
     this.producerLabel.delete(type);
 
-    if (type !== mediaType.audio) {
+    if (type == mediaType.video) {
       let elem = document.getElementById(producer_id);
-      console.log("elem.srcObject", elem.srcObject);
+      console.log("**********", elem.srcObject);
       elem.srcObject.getTracks().forEach(function (track) {
         track.stop();
       });
@@ -791,8 +989,11 @@ class RoomClient {
       case mediaType.screen:
         this.event(_EVENTS.stopScreen);
         break;
-      default:
-        return;
+    }
+    console.log(audioProducerId);
+    if (type == "screenType") {
+      videoProducerId = null;
+      audioProducerId = null;
     }
   }
 
@@ -817,11 +1018,13 @@ class RoomClient {
   }
 
   removeConsumer(consumer_id) {
-    let elem = document.getElementById(consumer_id);
-    elem.srcObject.getTracks().forEach(function (track) {
-      track.stop();
-    });
-    elem.parentNode.removeChild(elem);
+    // let elem = document.getElementById(consumer_id);
+    // elem.srcObject.getTracks().forEach(function (track) {
+    //   track.stop();
+    // });
+    // elem.parentNode.removeChild(elem);
+    const myDiv = document.querySelector(`[data-RemVidConId="${consumer_id}"]`);
+    myDiv.remove();
 
     this.consumers.delete(consumer_id);
   }
@@ -831,6 +1034,7 @@ class RoomClient {
 
 
   async exit(offline = false, name, room_id) {
+    sysAudio = false;
     if (!offline) {
       var dataObj = { commandType: "ExitRoom", Data: { Name: name, RoomId: room_id } };
       await this.socket.sendCommand(JSON.stringify(dataObj))
