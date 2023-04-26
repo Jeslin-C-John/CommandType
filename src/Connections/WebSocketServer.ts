@@ -264,7 +264,7 @@ export class WebSocketServer implements IServerManager {
       var resp = [...roomDetails.peers.entries()].map(([id, peer]) => ({
         user_id: id,
         user_name: peer.name,
-        consumers: [...peer.consumers.keys()],
+        audioStatus: peer.audioStatus,
         producers: [...peer.producers.keys()]
       }));
       // var resp = [...roomDetails.peers.entries()].map(([id, peer]) => ({

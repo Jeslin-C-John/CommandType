@@ -957,7 +957,7 @@ class RoomClient {
       sysAudio = false;
       let producer_id = audioProducerId;
 
-      var dataObj = { commandType: "producerClosed", Data: { RoomId: this.room_id, ProducerId: producer_id, Type: type } };
+      var dataObj = { commandType: "producerClosed", Data: { RoomId: this.room_id, ProducerId: producer_id, Type: "screenTypeAudio" } };
       this.socket.sendCommand(JSON.stringify(dataObj))
 
     }
@@ -1018,13 +1018,15 @@ class RoomClient {
   }
 
   removeConsumer(consumer_id) {
-    // let elem = document.getElementById(consumer_id);
-    // elem.srcObject.getTracks().forEach(function (track) {
-    //   track.stop();
-    // });
-    // elem.parentNode.removeChild(elem);
     const myDiv = document.querySelector(`[data-RemVidConId="${consumer_id}"]`);
-    myDiv.remove();
+    if (myDiv != undefined) myDiv.remove();
+    else {
+      let elem = document.getElementById(consumer_id);
+      elem.srcObject.getTracks().forEach(function (track) {
+        track.stop();
+      });
+      elem.parentNode.removeChild(elem);
+    }
 
     this.consumers.delete(consumer_id);
   }

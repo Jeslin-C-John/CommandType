@@ -15,7 +15,7 @@ export class JoinRoomCommand implements ICommand {
     ClientID: string;
     CommandType: CommandType;
     // private roomList = new Map();
-   
+
 
     constructor(connectionManager: IServerManager, data: any, clientID: string) {
         this._serverManager = connectionManager;
@@ -43,42 +43,43 @@ export class JoinRoomCommand implements ICommand {
     async execute(): Promise<void> {
         const callBackCommand: any = {
             CommandType: CommandType.JoinRoom,
-            Data: { ClientID: this.ClientID, Message: "Join Room Command",RoomList:null}
+            Data: { ClientID: this.ClientID, Message: "Join Room Command", RoomList: null }
         }
-        
+
         let room_id = this.Data.RoomId;
         let name = this.Data.Name;
 
-          if (!roomList.has(room_id)) {
+        if (!roomList.has(room_id)) {
             callBackCommand.Data.Message = "Room Not Available";
             callBackCommand.Event = EventTypes.JoinError;
             console.log('Room Not Available')
-          }
-          else{
-            roomList.get(room_id).addPeer(new PeerManager(this.ClientID,name))
+        }
+        else {
+            roomList.get(room_id).addPeer(new PeerManager(this.ClientID, name))
+            roomList.get(room_id).getPeers().get(this.ClientID).audioStatus = 0;
 
             callBackCommand.Data.Message = "Room Joined Successfully";
             callBackCommand.Data.RoomList = roomList.get(room_id).toJson()
             callBackCommand.Event = EventTypes.JoinedRoom;
-            console.log('User joined', {room_id: room_id,name: name})
-          }
+            console.log('User joined', { room_id: room_id, name: name })
+        }
 
-          let IRoomRepository = new RoomRepository();
-          let RoomDetails = new Room({
-              name: room_id,
-              users:[]
-          })
+        let IRoomRepository = new RoomRepository();
+        let RoomDetails = new Room({
+            name: room_id,
+            users: []
+        })
 
-          IRoomRepository.findRoomByName(room_id).then(
-              function(res){
-                  if(res == undefined || res == null){
-                      IRoomRepository.createRoom(RoomDetails);
-                  }
-              } ,
-              function(err){ 
-                  console.error(`Something went wrong: ${err}`)
-              }
-          );
+        IRoomRepository.findRoomByName(room_id).then(
+            function (res) {
+                if (res == undefined || res == null) {
+                    IRoomRepository.createRoom(RoomDetails);
+                }
+            },
+            function (err) {
+                console.error(`Something went wrong: ${err}`)
+            }
+        );
 
 
         this._serverManager.sendTo(this.ClientID, callBackCommand);

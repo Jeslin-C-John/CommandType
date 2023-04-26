@@ -84,6 +84,7 @@ server.connect().then((events) => {
   events.on(callbackEvents.ParticipantListUpdate, function (data) {
     ConsoleEvent(data.Event, data.Data)
     roomObj.updateRoom(data.Data.Data);
+    console.log("ParticipantListUpdate", data.Data.Data);
   });
   events.on(callbackEvents.consumerPaused, function (data) {
     ConsoleEvent(data.Event, data)

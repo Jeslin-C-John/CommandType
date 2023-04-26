@@ -59,6 +59,12 @@ export class producerClosedCommand implements ICommand {
 
 
 
+        if (type === "screenTypeAudio" || type === "audioType") {
+            roomList.get(room_id).getPeers().get(this.ClientID).audioStatus--;
+        }
+
+
+
         this._serverManager.sendParticipantList(room_id)
     }
 }

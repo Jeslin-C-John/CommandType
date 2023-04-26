@@ -62,6 +62,12 @@ export class produceCommand implements ICommand {
             callBackCommand.Data.producer_id = producer_id;
             callBackCommand.Event = EventTypes.produced;
             console.log('produced')
+
+            if (kind === 'audio') {
+                roomList.get(room_id).getPeers().get(this.ClientID).audioStatus++;
+            }
+
+
         }
 
         this._serverManager.sendTo(this.ClientID, callBackCommand);

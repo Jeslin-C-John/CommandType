@@ -71,6 +71,6 @@ export class consumeCommand implements ICommand {
         this._serverManager.sendTo(this.ClientID, callBackCommand);
 
 
-        this._serverManager.sendParticipantList(room_id)
+        // this._serverManager.sendParticipantList(room_id)
     }
 }
