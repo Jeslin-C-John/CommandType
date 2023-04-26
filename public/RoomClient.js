@@ -80,6 +80,13 @@ class RoomClient {
       var nameCell = document.createElement("td");
       nameCell.innerText = participantElement.user_name;
 
+      var micCell = document.createElement("td");
+      if (participantElement.audioStatus > 0)
+        micCell.innerHTML = "<i class='fas fa-microphone'></i>";
+      else
+        micCell.innerHTML = "<i class='fas fa-microphone-slash'></i>";
+
+
       var pauseAudioButtonCell = document.createElement("td");
       var pauseAudioButton = document.createElement("button");
       pauseAudioButton.innerText = "Mute Audio";
@@ -137,6 +144,7 @@ class RoomClient {
       resumeVideoButtonCell.appendChild(resumeVideoButton);
 
       row.appendChild(nameCell);
+      row.appendChild(micCell);
       row.appendChild(pauseAudioButtonCell);
       row.appendChild(resumeAudioButtonCell);
       row.appendChild(pauseVideoButtonCell);
