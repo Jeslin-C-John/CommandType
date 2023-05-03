@@ -64,14 +64,14 @@ export class produceCommand implements ICommand {
             console.log('produced')
 
             if (kind === 'audio') {
+                var audioLevelObserver = roomList.get(room_id).ALO
+                await audioLevelObserver.addProducer({ producerId: producer_id });
                 roomList.get(room_id).getPeers().get(this.ClientID).audioStatus++;
             }
-
 
         }
 
         this._serverManager.sendTo(this.ClientID, callBackCommand);
-
 
         this._serverManager.sendParticipantList(room_id)
 

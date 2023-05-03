@@ -43,5 +43,6 @@ export enum EventTypes {
     producerClosed = "producerClosed",
     ParticipantListUpdate = "ParticipantListUpdate",
     consumerPaused = "consumerPaused",
-    consumerResumed = "consumerResumed"
+    consumerResumed = "consumerResumed",
+    audioLevelObserver = "audioLevelObserver"
 }

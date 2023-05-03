@@ -55,9 +55,12 @@ export class CreateRoomCommand implements ICommand {
             registerCallBack.Event = EventTypes.RoomCreated;
             let worker = await this._serverManager.getMediasoupWorker()
             let room = new RoomManager(room_id, worker, this._serverManager)
-            await room.getRouter(worker);
-            roomList.set(room_id, room)
-            console.log("**************************************************")
+
+            let audioLevelObserver = await room.getRouter(worker);
+            roomList.set(room_id, room);
+
+            roomList.get(room_id).ALO = audioLevelObserver;
+            room.AudioLevelObserverEvents(audioLevelObserver, room_id)
 
         }
         console.log("clientId", this.ClientID)

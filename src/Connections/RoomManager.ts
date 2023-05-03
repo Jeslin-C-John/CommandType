@@ -1,5 +1,6 @@
 import { IConfigManager } from "../Abstracts/IConfigManager";
 import { IRoomManager } from "../Abstracts/IRoomManager"
+import { EventTypes } from "../Types/Events";
 import { ConfigManager } from "./ConfigManager";
 
 export class RoomManager implements IRoomManager {
@@ -28,6 +29,36 @@ export class RoomManager implements IRoomManager {
           this.router = router
         }.bind(this)
       )
+    const audioLevelObserver = await this.router.createAudioLevelObserver(
+      {
+        interval: 300,
+        threshold: -40,
+        maxEntries: 500,
+      });
+    return audioLevelObserver
+  }
+
+  AudioLevelObserverEvents(audioLevelObserver: any, _room_id: any) {
+
+    audioLevelObserver.observer.on('silence', () => {
+      const callBackCommand: any = {
+        CommandType: EventTypes.audioLevelObserver,
+        Data: "silence"
+      }
+      this.io.broadCastRoom(callBackCommand, _room_id)
+    })
+
+    audioLevelObserver.observer.on('volumes', (volumes: any) => {
+      let activeProducers = [];
+      volumes.forEach((Element: { producer: { id: any; }; }) => {
+        activeProducers.push(Element.producer.id);
+      });
+      const callBackCommand: any = {
+        CommandType: EventTypes.audioLevelObserver,
+        Data: activeProducers
+      }
+      this.io.broadCastRoom(callBackCommand, _room_id)
+    })
   }
 
   addPeer(peer) {
